@@ -142,42 +142,42 @@ For time-related analysis, I created a dedicated DimDate table using the CALENDA
 One challenge I faced was with the Global Terrorism Database (GTD), which records incidents where the exact day or month might be unknown (indicated by imonth/iday = 0). To handle this, I decided to default those dates to the 1st of the month or year during the data preparation phase in Power Query. I also included a flag, ExactDateUnknown, to ensure that anyone analyzing the data can choose to exclude these estimated dates if they wish.
 
 ### Section D: DAX & BUSINESS CALCULATIONS
-Documentation — Six Key Measures
 1. Total Incidents
-   - What it is: Counts all terrorism incidents within the current filters.  
-   - Why it matters: This is the fundamental metric that underpins all other measures.  
-   - How it works: Uses the COUNTROWS function.  
-   - Where to find it: Shown on the KPI card in the Executive Overview page.  
+Country Rank by Incidents  
+Calculates each country's rank by total incident count, ignoring any selected country filter. This helps viewers compare the selected country to all others. Main DAX functions include RANKX and ALL. The filter context specifically removes the country filter while keeping others active. Used in the dashboard table on the Regional/Diagnostic page to show ranks alongside incident counts.
 
-2. Total Casualties
-   - What it is: ** Adds together the number of killed and wounded across all incidents.  
-   - Why it matters: Offers a clearer picture of human impact by combining fatalities and injuries into one figure.  
-   - How it works: Simple addition of [Total Killed] and [Total Wounded].  
-   - Where to find it: Displayed on the KPI card in the Overview page and as part of the country-level map visual.  
+DAX
+Country Rank by Incidents =
+RANKX(ALL(DimLocation[country_txt]), [Total Incidents], , DESC)
 
-3. Lethality Rate %
-   - What it is: Represents the percentage of casualties that were fatalities.  
-   - Why it matters: Helps distinguish between incidents that caused many injuries versus those that resulted in more fatalities.  
-   - How it works: Utilizes the DIVIDE function for safe calculations.  
-   - Where to find it: Shown in a bar chart on the Detailed Analysis page.  
 
-4. YoY Incident Growth %  
-   - What it is: Shows the percentage change in incident counts compared to the same time last year.  
-   - Why it matters: Provides insights into trends, signaling whether violence is increasing or decreasing over time.  
-   - How it works: Combines CALCULATE, SAMEPERIODLASTYEAR, and DIVIDE functions.  
-   - **Where to find it:** Displayed in a line chart with a trend indicator on the Executive Overview page.  
+Unknown Perpetrator %  
+Calculates the percentage of incidents with no identified responsible group. This serves as a diagnostic tool, as rising "unknown" rates can indicate data quality issues, reflecting different regions or time periods. It uses VAR/RETURN, CALCULATE, and DIVIDE functions. The measure recalculates based on selected regions or years, aiding in comparative analysis on the Advanced/Diagnostic page.
 
-5. Country Rank by Incidents 
-   - What it is: Ranks countries based on total incident counts without being affected by any active country filter.  
-   - Why it matters: Allows for comparison of a country's incident rates relative to all other countries, even if a specific country is currently selected.  
-   - How it works: Uses RANKX and ALL functions to override the country filter.  
-   - Where to find it: Typically found in tooltips or tables on the Regional/Diagnostic page.  
+DAX
+Unknown Perpetrator % =
+VAR UnknownCount =
+CALCULATE([Total Incidents], FactsIncidents[gname] = "Unknown")
+RETURN
+DIVIDE(UnknownCount, [Total Incidents], 0)
 
-6. Unknown Perpetrator % 
-   - What it is: Measures the proportion of incidents where no group has claimed responsibility.  
-   - Why it matters: Highlights data quality issues and can indicate trends in attribution rates, which is essential for analysis.  
-   - How it works: Involves VAR, CALCULATE, and DIVIDE functions.  
-   - Where to find it: Included in a card and trend line on the Advanced/Diagnostic page.  
 
-These measures provide valuable insights that help us understand and analyze the landscape of terrorism incidents better.
-### 
+Full Measure List (12 total)
+
+Level 1 — Core
+- Total Incidents  
+- Total Killed  
+- Total Wounded  
+- Average Killed per Incident  
+
+Level 2 — Business 
+- Total Casualties  
+- Lethality Rate %  
+- Success Rate %  
+- Distinct Groups Involved  
+
+Level 3 — Advanced
+- Previous Year Incidents  
+- YoY Incident Growth %  
+- Country Rank by Incidents  
+- Unknown Perpetrator %  
